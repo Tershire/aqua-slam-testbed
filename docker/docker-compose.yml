@@ -23,7 +23,11 @@ services:
       - ../scenarios:/ros2_ws/scenarios:ro
       - ../launch:/ros2_ws/launch:ro
 
-    # NVIDIA GPU: uncomment if using nvidia-container-toolkit
+    # Intel/AMD GPU: DRI device passthrough for OpenGL
+    devices:
+      - /dev/dri:/dev/dri
+
+    # NVIDIA GPU: uncomment + comment out devices above if using nvidia-container-toolkit
     # deploy:
     #   resources:
     #     reservations:
