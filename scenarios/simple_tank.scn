@@ -159,6 +159,18 @@
     <!-- Sonar: removed until FLS vs MSIS decision is made.
          Water Linked 3D-15 may require a custom sensor class. -->
 
+    <!-- Surge thruster (forward/backward).
+         Setpoint: std_msgs/Float64, range [-1, 1] (normalized).
+         Positive value → forward thrust (+x direction). -->
+    <actuator name="surge_thruster" type="thruster">
+      <link name="Vehicle"/>
+      <origin rpy="0.0 3.14159 0.0" xyz="-0.55 0.0 0.0"/>
+      <specs thrust_coeff="40.0" thrust_coeff_backward="38.0"
+             torque_coeff="0.01" max_rpm="3000.0"/>
+      <propeller diameter="0.1" right_hand="true"/>
+      <ros_subscriber topic="/girona500/surge_thruster/setpoint"/>
+    </actuator>
+
   </robot>
 
 </scenario>

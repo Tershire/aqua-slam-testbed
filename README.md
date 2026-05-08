@@ -127,6 +127,55 @@ ros2 topic hz /bluerov2/dvl
 
 ---
 
+## SLAM Initialization Test (forward straight-line)
+
+### Test protocol
+
+```bash
+# Terminal 1 — simulator + DVL converter
+docker exec -it aqua_slam_testbed bash
+ros2 launch /ros2_ws/launch/sim.launch.py
+
+# Terminal 2 — SLAM
+docker exec -it aqua_slam_ros2_sim_dev bash
+ros2 launch aqua_slam stonefish_sim.launch.py
+
+# Terminal 3 — record ground truth + SLAM output
+docker exec -it aqua_slam_ros2_sim_dev bash
+ros2 bag record /tf /bluerov2/dvl \
+  /girona500/camera_left/image_color \
+  /girona500/imu/data \
+  -o ~/slam_test_$(date +%Y%m%d_%H%M%S)
+
+# Terminal 4 — run forward test (wait ~5 s after SLAM launches)
+docker exec -it aqua_slam_testbed bash
+python3 /ros2_ws/scripts/forward_test.py --thrust 0.3 --cruise 20 --ramp 3
+```
+
+### Thruster setpoint
+
+| Parameter | Default | Notes |
+|-----------|---------|-------|
+| `--thrust` | 0.3 | Normalized thrust 0–1. Start low; adjust if velocity is too slow/fast. |
+| `--cruise` | 20 s | At ~0.3 thrust the robot should travel ~5–8 m (enough for IMU init at 3 m). |
+| `--ramp`   | 3 s  | Smooth trapezoidal ramp; reduces IMU integration error at start/stop. |
+
+Profile shape:
+```
+thrust
+  0.3 |      ___________
+      |     /           \
+    0 |____/             \____
+         |ramp| cruise  |ramp|
+```
+
+### Ground truth comparison
+
+Stonefish publishes the robot's true pose on `/tf` (frame: `world` → `girona500/Vehicle`).
+After the bag is recorded, extract and compare with the SLAM odometry output.
+
+---
+
 ## Known Issues / TODO
 
 - [ ] Sonar sensor spec format for Stonefish 1.6 not yet resolved → sensor omitted
