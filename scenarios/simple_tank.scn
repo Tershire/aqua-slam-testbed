@@ -36,6 +36,7 @@
     <look name="white_rough" rgb="0.9 0.9 0.9" roughness="0.8"/>
     <look name="dark"        rgb="0.05 0.05 0.05" roughness="0.9"/>
     <look name="vehicle"     rgb="0.25 0.35 0.75" roughness="0.4" metalness="0.5"/>
+    <look name="propeller"   rgb="0.2 0.2 0.2"   roughness="0.3" metalness="0.8"/>
   </looks>
 
   <!-- ================================================================ -->
@@ -160,14 +161,17 @@
          Water Linked 3D-15 may require a custom sensor class. -->
 
     <!-- Surge thruster (forward/backward).
-         Setpoint: std_msgs/Float64, range [-1, 1] (normalized).
+         Setpoint: std_msgs/Float64, normalized [-1, 1].
          Positive value → forward thrust (+x direction). -->
     <actuator name="surge_thruster" type="thruster">
       <link name="Vehicle"/>
       <origin rpy="0.0 3.14159 0.0" xyz="-0.55 0.0 0.0"/>
-      <specs thrust_coeff="40.0" thrust_coeff_backward="38.0"
-             torque_coeff="0.01" max_rpm="3000.0"/>
-      <propeller diameter="0.1" right_hand="true"/>
+      <specs thrust_coeff="0.48" torque_coeff="0.01" max_rpm="3000.0"/>
+      <propeller diameter="0.18" right="true">
+        <mesh filename="meshes/propeller.obj" scale="1.0"/>
+        <material name="Neutral"/>
+        <look name="propeller"/>
+      </propeller>
       <ros_subscriber topic="/girona500/surge_thruster/setpoint"/>
     </actuator>
 

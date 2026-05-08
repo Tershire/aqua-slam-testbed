@@ -22,6 +22,7 @@ services:
       - ../scenarios:/ros2_ws/scenarios:ro
       - ../launch:/ros2_ws/launch:ro
       - ../scripts:/ros2_ws/scripts:ro
+      - ../meshes:/usr/local/share/Stonefish/meshes:ro
 
     deploy:
       resources:
