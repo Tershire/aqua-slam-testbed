@@ -1,0 +1,173 @@
+<?xml version="1.0"?>
+<!--
+  Simple tank scenario for AQUA-SLAM baseline testing.
+
+  Layout (NED: x=forward/north, y=right/east, z=down):
+    Tank: 20m (x) × 8m (y) × 4m (z)
+    Water surface at z=0, bottom at z=4.
+    Robot starts at (2.0, 0.0, 2.0) — centre depth, facing forward.
+
+  Sensors:
+    Stereo cameras  — baseline 0.12m (= Camera.bf / Camera.fx in stonefish_sim.yaml)
+    IMU             — 200 Hz, body centre
+    DVL             — 5 Hz, bottom-facing
+    Pressure        — 10 Hz, depth estimate
+    Sonar (MSIS)    — placeholder; type/params TBD pending FLS vs MSIS decision
+-->
+<scenario>
+
+  <environment>
+    <ned latitude="41.77" longitude="3.04"/>
+    <ocean>
+      <water density="1025.0" jerlov_type="II"/>
+    </ocean>
+    <atmosphere sun_azimuth="20.0" sun_elevation="50.0"/>
+  </environment>
+
+  <materials>
+    <material name="Neutral"    density="1000.0" restitution="0.5"/>
+    <material name="Concrete"   density="2200.0" restitution="0.7"/>
+    <material name="Fiberglass" density="1500.0" restitution="0.3"/>
+  </materials>
+
+  <looks>
+    <!-- Textured walls give ORB-SLAM3 enough features to track. -->
+    <look name="checker"     type="physical" texture="checker.png" roughness="0.5"/>
+    <look name="white_rough" type="physical" rgb="0.9 0.9 0.9"    roughness="0.8"/>
+    <look name="dark"        type="physical" rgb="0.05 0.05 0.05" roughness="0.9"/>
+    <look name="vehicle"     type="physical" rgb="0.25 0.35 0.75" roughness="0.4" metalness="0.5"/>
+  </looks>
+
+  <!-- ================================================================ -->
+  <!-- Tank structure                                                     -->
+  <!-- ================================================================ -->
+
+  <static name="tank_bottom" type="box">
+    <world_transform rpy="0 0 0" xyz="10.0 0.0 4.05"/>
+    <dimensions xyz="20.0 8.0 0.1"/>
+    <material name="Concrete"/>
+    <look name="checker"/>
+  </static>
+
+  <static name="tank_ceiling" type="box">
+    <world_transform rpy="0 0 0" xyz="10.0 0.0 -0.05"/>
+    <dimensions xyz="20.0 8.0 0.1"/>
+    <material name="Concrete"/>
+    <look name="dark"/>
+  </static>
+
+  <!-- back wall (x=0): robot starts here, visual reference -->
+  <static name="tank_wall_back" type="box">
+    <world_transform rpy="0 0 0" xyz="-0.05 0.0 2.0"/>
+    <dimensions xyz="0.1 8.0 4.0"/>
+    <material name="Concrete"/>
+    <look name="checker"/>
+  </static>
+
+  <!-- front wall (x=20): target end of forward traverse -->
+  <static name="tank_wall_front" type="box">
+    <world_transform rpy="0 0 0" xyz="20.05 0.0 2.0"/>
+    <dimensions xyz="0.1 8.0 4.0"/>
+    <material name="Concrete"/>
+    <look name="checker"/>
+  </static>
+
+  <static name="tank_wall_port" type="box">
+    <world_transform rpy="0 0 0" xyz="10.0 -4.05 2.0"/>
+    <dimensions xyz="20.0 0.1 4.0"/>
+    <material name="Concrete"/>
+    <look name="white_rough"/>
+  </static>
+
+  <static name="tank_wall_starboard" type="box">
+    <world_transform rpy="0 0 0" xyz="10.0 4.05 2.0"/>
+    <dimensions xyz="20.0 0.1 4.0"/>
+    <material name="Concrete"/>
+    <look name="white_rough"/>
+  </static>
+
+  <!-- ================================================================ -->
+  <!-- Robot: Girona500 (simplified cylinder body)                       -->
+  <!-- TODO: replace with BlueROV2 model when available                  -->
+  <!-- ================================================================ -->
+
+  <robot name="girona500" fixed="false" self_collisions="false">
+
+    <base_link name="Vehicle" type="cylinder" physics="submerged">
+      <!-- Cylinder axis is z by default; rotate 90° around y to align with x=forward. -->
+      <dimensions radius="0.15" height="1.1"/>
+      <origin rpy="0.0 1.5708 0.0" xyz="0.0 0.0 0.0"/>
+      <material name="Fiberglass"/>
+      <look name="vehicle"/>
+      <mass value="65.0"/>
+      <inertia xyz="0.5 6.0 6.0"/>
+      <center_of_buoyancy xyz="0.0 0.0 -0.02"/>
+      <added_mass xyz="5.0 50.0 50.0" rpy="0.0 0.0 0.0"/>
+    </base_link>
+
+    <!-- Initial pose: x=2 m from back wall, centred, mid-depth. -->
+    <world_transform rpy="0.0 0.0 0.0" xyz="2.0 0.0 2.0"/>
+
+    <!-- Stereo camera — left (reference).
+         Origin in body frame: 0.5 m forward, 0.06 m to port.
+         T_imu_c in stonefish_sim.yaml must match this placement. -->
+    <sensor name="camera_left" type="camera" rate="20.0">
+      <link name="Vehicle"/>
+      <origin rpy="0.0 0.0 0.0" xyz="0.5 -0.06 0.0"/>
+      <specs resolution_x="612" resolution_y="512" horizontal_fov="50.0"/>
+      <noise std_dev="0.02"/>
+      <ros_publisher topic="/girona500/camera_left/image_color"/>
+    </sensor>
+
+    <!-- Stereo camera — right. -->
+    <sensor name="camera_right" type="camera" rate="20.0">
+      <link name="Vehicle"/>
+      <origin rpy="0.0 0.0 0.0" xyz="0.5 0.06 0.0"/>
+      <specs resolution_x="612" resolution_y="512" horizontal_fov="50.0"/>
+      <noise std_dev="0.02"/>
+      <ros_publisher topic="/girona500/camera_right/image_color"/>
+    </sensor>
+
+    <!-- IMU — body centre, 200 Hz to match SLAM config. -->
+    <sensor name="imu" type="imu" rate="200.0">
+      <link name="Vehicle"/>
+      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+      <noise angle_std_dev="0.001"    linear_acc_std_dev="0.01"
+             angle_bias_std_dev="0.0" linear_acc_bias_std_dev="0.0"/>
+      <ros_publisher topic="/girona500/imu/data"/>
+    </sensor>
+
+    <!-- DVL — bottom-facing (rotated 180° around y). -->
+    <sensor name="dvl" type="dvl" rate="5.0">
+      <link name="Vehicle"/>
+      <origin rpy="0.0 3.14159 0.0" xyz="0.0 0.0 0.15"/>
+      <specs beam_angle="30.0"/>
+      <range velocity_min="-10.0" velocity_max="10.0"
+             altitude_min="0.2"  altitude_max="80.0"/>
+      <noise velocity_std_dev="0.01"/>
+      <ros_publisher topic="/girona500/dvl"/>
+    </sensor>
+
+    <!-- Depth (pressure sensor). -->
+    <sensor name="pressure" type="pressure" rate="10.0">
+      <link name="Vehicle"/>
+      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+      <noise std_dev="1.0"/>
+      <ros_publisher topic="/girona500/pressure"/>
+    </sensor>
+
+    <!-- Sonar placeholder — MSIS for now.
+         Swap type/params once FLS vs MSIS decision is made.
+         Water Linked 3D-15 may require a custom sensor class. -->
+    <sensor name="sonar" type="msis" rate="0.5">
+      <link name="Vehicle"/>
+      <origin rpy="0.0 0.0 0.0" xyz="0.5 0.0 0.0"/>
+      <specs step="1.8" bins="500" step_size="0.9"/>
+      <range distance_min="0.5" distance_max="30.0"/>
+      <noise std_dev="0.02"/>
+      <ros_publisher topic="/girona500/sonar"/>
+    </sensor>
+
+  </robot>
+
+</scenario>

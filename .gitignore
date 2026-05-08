@@ -1,0 +1,7 @@
+# Docker build cache
+docker/.docker_build_cache/
+
+# ROS2 build artifacts (if ever colcon build is run here)
+build/
+install/
+log/
