@@ -116,7 +116,7 @@
       <origin rpy="0.0 0.0 0.0" xyz="0.5 -0.06 0.0"/>
       <specs resolution_x="612" resolution_y="512" horizontal_fov="50.0"/>
       <noise std_dev="0.02"/>
-      <ros_publisher topic="/girona500/camera_left/image_color"/>
+      <ros_publisher topic="/girona500/camera_left"/>
     </sensor>
 
     <!-- Stereo camera — right. -->
@@ -125,7 +125,7 @@
       <origin rpy="0.0 0.0 0.0" xyz="0.5 0.06 0.0"/>
       <specs resolution_x="612" resolution_y="512" horizontal_fov="50.0"/>
       <noise std_dev="0.02"/>
-      <ros_publisher topic="/girona500/camera_right/image_color"/>
+      <ros_publisher topic="/girona500/camera_right"/>
     </sensor>
 
     <!-- IMU — body centre, 200 Hz to match SLAM config. -->
