@@ -1,11 +1,12 @@
 import os
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, ExecuteProcess
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 
 STONEFISH_DATA = '/usr/local/share/Stonefish'
+WS_ROOT = os.environ.get('ROS2_WS', '/ros2_ws')
 
 
 def generate_launch_description():
@@ -46,6 +47,13 @@ def generate_launch_description():
         output='screen',
     )
 
+    # Converts stonefish_ros2/DVL → nav_msgs/Odometry (/bluerov2/dvl) for AQUA-SLAM.
+    # Runs here because stonefish_ros2 is not installed in the AQUA-SLAM container.
+    dvl_converter = ExecuteProcess(
+        cmd=['python3', os.path.join(WS_ROOT, 'scripts', 'sim_dvl_converter.py')],
+        output='screen',
+    )
+
     return LaunchDescription([
         scenario_arg,
         rate_arg,
@@ -53,4 +61,5 @@ def generate_launch_description():
         height_arg,
         quality_arg,
         sim_node,
+        dvl_converter,
     ])

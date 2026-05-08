@@ -21,6 +21,7 @@ services:
       - /tmp/.X11-unix:/tmp/.X11-unix
       - ../scenarios:/ros2_ws/scenarios:ro
       - ../launch:/ros2_ws/launch:ro
+      - ../scripts:/ros2_ws/scripts:ro
 
     deploy:
       resources:
