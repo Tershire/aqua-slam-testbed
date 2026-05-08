@@ -23,6 +23,7 @@ services:
       - ../launch:/ros2_ws/launch:ro
       - ../scripts:/ros2_ws/scripts:ro
       - ../meshes:/usr/local/share/Stonefish/meshes:ro
+      - ../textures:/usr/local/share/Stonefish/textures:ro
 
     deploy:
       resources:

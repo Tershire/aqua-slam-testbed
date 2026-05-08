@@ -48,7 +48,6 @@ class ForwardTest(Node):
 
         rate_hz = 50.0
         dt      = 1.0 / rate_hz
-        rate    = self.create_rate(rate_hz)
         t0      = self.get_clock().now().nanoseconds * 1e-9
         msg     = Float64()
 
@@ -56,13 +55,10 @@ class ForwardTest(Node):
             t = self.get_clock().now().nanoseconds * 1e-9 - t0
 
             if t < self._ramp:
-                # linear ramp-up
                 setpoint = self._thrust * (t / self._ramp)
             elif t < self._ramp + self._cruise:
-                # cruise
                 setpoint = self._thrust
             elif t < total:
-                # linear ramp-down
                 setpoint = self._thrust * (1.0 - (t - self._ramp - self._cruise) / self._ramp)
             else:
                 setpoint = 0.0
@@ -74,7 +70,7 @@ class ForwardTest(Node):
             msg.data = setpoint
             self._pub.publish(msg)
             rclpy.spin_once(self, timeout_sec=0.0)
-            rate.sleep()
+            time.sleep(dt)
 
 
 def main():

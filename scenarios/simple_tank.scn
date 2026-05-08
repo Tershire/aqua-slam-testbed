@@ -32,8 +32,8 @@
 
   <looks>
     <!-- Distinct colors on each wall help ORB-SLAM3 track edges and corners. -->
-    <look name="checker"     rgb="0.8 0.8 0.8" roughness="0.5"/>
-    <look name="white_rough" rgb="0.9 0.9 0.9" roughness="0.8"/>
+    <look name="checker"     rgb="0.8 0.8 0.8" roughness="0.5" texture="textures/checker.png"/>
+    <look name="white_rough" rgb="0.9 0.9 0.9" roughness="0.8" texture="textures/checker.png"/>
     <look name="dark"        rgb="0.05 0.05 0.05" roughness="0.9"/>
     <look name="vehicle"     rgb="0.25 0.35 0.75" roughness="0.4" metalness="0.5"/>
     <look name="propeller"   rgb="0.2 0.2 0.2"   roughness="0.3" metalness="0.8"/>
@@ -94,16 +94,16 @@
 
   <robot name="girona500" fixed="false" self_collisions="false">
 
-    <base_link name="Vehicle" type="cylinder" physics="submerged">
-      <!-- Cylinder axis is z by default; rotate 90° around y to align with x=forward. -->
-      <dimensions radius="0.15" height="1.1"/>
-      <origin rpy="0.0 1.5708 0.0" xyz="0.0 0.0 0.0"/>
+    <base_link name="Vehicle" type="box" physics="submerged">
+      <!-- Box: 1.1m(x/fwd) × 0.3m(y) × 0.3m(z), volume=0.099m³, displaced=101.5kg -->
+      <dimensions xyz="1.1 0.3 0.3"/>
+      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
       <material name="Fiberglass"/>
       <look name="vehicle"/>
-      <mass value="65.0"/>
-      <inertia xyz="0.5 6.0 6.0"/>
-      <center_of_buoyancy xyz="0.0 0.0 -0.02"/>
-      <added_mass xyz="5.0 50.0 50.0" rpy="0.0 0.0 0.0"/>
+      <mass value="101.0"/>
+      <inertia xyz="0.55 5.5 5.5"/>
+      <center_of_buoyancy xyz="0.0 0.0 -0.03"/>
+      <added_mass xyz="5.0 30.0 30.0" rpy="0.0 0.0 0.0"/>
     </base_link>
 
     <!-- Initial pose: x=2 m from back wall, centred, mid-depth. -->
@@ -114,7 +114,7 @@
          T_imu_c in stonefish_sim.yaml must match this placement. -->
     <sensor name="camera_left" type="camera" rate="20.0">
       <link name="Vehicle"/>
-      <origin rpy="0.0 0.0 0.0" xyz="0.5 -0.06 0.0"/>
+      <origin rpy="1.5708 0.0 1.5708" xyz="0.5 -0.06 0.0"/>
       <specs resolution_x="612" resolution_y="512" horizontal_fov="50.0"/>
       <noise std_dev="0.02"/>
       <ros_publisher topic="/girona500/camera_left"/>
@@ -123,7 +123,7 @@
     <!-- Stereo camera — right. -->
     <sensor name="camera_right" type="camera" rate="20.0">
       <link name="Vehicle"/>
-      <origin rpy="0.0 0.0 0.0" xyz="0.5 0.06 0.0"/>
+      <origin rpy="1.5708 0.0 1.5708" xyz="0.5 0.06 0.0"/>
       <specs resolution_x="612" resolution_y="512" horizontal_fov="50.0"/>
       <noise std_dev="0.02"/>
       <ros_publisher topic="/girona500/camera_right"/>
@@ -165,13 +165,17 @@
          Positive value → forward thrust (+x direction). -->
     <actuator name="surge_thruster" type="thruster">
       <link name="Vehicle"/>
-      <origin rpy="0.0 3.14159 0.0" xyz="-0.55 0.0 0.0"/>
-      <specs thrust_coeff="0.48" torque_coeff="0.01" max_rpm="3000.0"/>
+      <origin rpy="0.0 0.0 0.0" xyz="-0.55 0.0 0.0"/>
+      <specs max_setpoint="1.0" normalized_setpoint="true"/>
       <propeller diameter="0.18" right="true">
         <mesh filename="meshes/propeller.obj" scale="1.0"/>
         <material name="Neutral"/>
         <look name="propeller"/>
       </propeller>
+      <rotor_dynamics type="zero_order"/>
+      <thrust_model type="quadratic">
+        <thrust_coeff value="200.0"/>
+      </thrust_model>
       <ros_subscriber topic="/girona500/surge_thruster/setpoint"/>
     </actuator>
 
