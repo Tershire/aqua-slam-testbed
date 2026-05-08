@@ -31,11 +31,11 @@
   </materials>
 
   <looks>
-    <!-- Textured walls give ORB-SLAM3 enough features to track. -->
-    <look name="checker"     type="physical" texture="checker.png" roughness="0.5"/>
-    <look name="white_rough" type="physical" rgb="0.9 0.9 0.9"    roughness="0.8"/>
-    <look name="dark"        type="physical" rgb="0.05 0.05 0.05" roughness="0.9"/>
-    <look name="vehicle"     type="physical" rgb="0.25 0.35 0.75" roughness="0.4" metalness="0.5"/>
+    <!-- Distinct colors on each wall help ORB-SLAM3 track edges and corners. -->
+    <look name="checker"     rgb="0.8 0.8 0.8" roughness="0.5"/>
+    <look name="white_rough" rgb="0.9 0.9 0.9" roughness="0.8"/>
+    <look name="dark"        rgb="0.05 0.05 0.05" roughness="0.9"/>
+    <look name="vehicle"     rgb="0.25 0.35 0.75" roughness="0.4" metalness="0.5"/>
   </looks>
 
   <!-- ================================================================ -->
@@ -156,17 +156,8 @@
       <ros_publisher topic="/girona500/pressure"/>
     </sensor>
 
-    <!-- Sonar placeholder — MSIS for now.
-         Swap type/params once FLS vs MSIS decision is made.
+    <!-- Sonar: removed until FLS vs MSIS decision is made.
          Water Linked 3D-15 may require a custom sensor class. -->
-    <sensor name="sonar" type="msis" rate="0.5">
-      <link name="Vehicle"/>
-      <origin rpy="0.0 0.0 0.0" xyz="0.5 0.0 0.0"/>
-      <specs step="1.8" bins="500" step_size="0.9"/>
-      <range distance_min="0.5" distance_max="30.0"/>
-      <noise std_dev="0.02"/>
-      <ros_publisher topic="/girona500/sonar"/>
-    </sensor>
 
   </robot>
 

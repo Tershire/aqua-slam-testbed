@@ -5,6 +5,9 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 
+STONEFISH_DATA = '/usr/local/share/Stonefish'
+
+
 def generate_launch_description():
     ws_root = os.environ.get('ROS2_WS', '/ros2_ws')
 
@@ -18,20 +21,36 @@ def generate_launch_description():
         default_value='1000.0',
         description='Physics simulation rate [Hz]',
     )
+    # GPU version only: window size and rendering quality
+    width_arg  = DeclareLaunchArgument('window_width',  default_value='800')
+    height_arg = DeclareLaunchArgument('window_height', default_value='600')
+    quality_arg = DeclareLaunchArgument(
+        'quality',
+        default_value='low',
+        description='Rendering quality: low / medium / high',
+    )
 
+    # GPU: stonefish_simulator  <dataPath> <scenarioPath> <rate> <W> <H> <quality>
     sim_node = Node(
         package='stonefish_ros2',
-        executable='parsed_simulator',
+        executable='stonefish_simulator',
         name='stonefish_simulator',
-        parameters=[{
-            'simulation_rate': LaunchConfiguration('simulation_rate'),
-            'scenario_description': LaunchConfiguration('scenario'),
-        }],
+        arguments=[
+            STONEFISH_DATA,
+            LaunchConfiguration('scenario'),
+            LaunchConfiguration('simulation_rate'),
+            LaunchConfiguration('window_width'),
+            LaunchConfiguration('window_height'),
+            LaunchConfiguration('quality'),
+        ],
         output='screen',
     )
 
     return LaunchDescription([
         scenario_arg,
         rate_arg,
+        width_arg,
+        height_arg,
+        quality_arg,
         sim_node,
     ])
