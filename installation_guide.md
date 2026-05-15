@@ -54,6 +54,22 @@ Verify GPU is accessible in Docker:
 docker run --rm --gpus all nvidia/cuda:12.0-base-ubuntu22.04 nvidia-smi
 ```
 
+> **Note — nvidia-container-toolkit ≥ 1.17:** `docker compose`'s
+> `deploy.resources.reservations.devices` no longer reliably injects the GPU when the
+> default Docker runtime is `runc`.  `docker-compose.yml` must include `runtime: nvidia`
+> explicitly for the service:
+>
+> ```yaml
+> services:
+>   stonefish_sim:
+>     runtime: nvidia
+>     ...
+> ```
+>
+> This is already set in this repository's `docker/docker-compose.yml`.
+> If you see `Failed to initialize NVML` or a GLX `BadValue` error inside the container,
+> verify that `runtime: nvidia` is present and restart with `docker compose down && docker compose up -d`.
+
 ---
 
 ## 3. Docker + Docker Compose v2 (host)
@@ -129,6 +145,12 @@ If `nvidia-smi` is not in the container, verify GPU rendering works by launching
 Camera topic rate of **5–20 Hz** confirms GPU rendering is active.
 A rate below **1 Hz** indicates the container is falling back to CPU rendering — check that `xhost +local:docker` was run and the container was started after that.
 
+Sonar topic publishing confirms multibeam2d GPU rendering is also active:
+
+```bash
+ros2 topic hz /girona500/sonar_3d15/raw   # expect ~5 Hz
+```
+
 ---
 
 ## Troubleshooting
@@ -136,6 +158,8 @@ A rate below **1 Hz** indicates the container is falling back to CPU rendering �
 | Symptom | Likely cause | Fix |
 |---------|-------------|-----|
 | Camera rate < 1 Hz | GPU not accessible or X11 permission missing | Run `xhost +local:docker`, then `docker compose restart` |
+| `Failed to initialize NVML` / GLX `BadValue` | `runtime: nvidia` missing; toolkit ≥ 1.17 no longer auto-injects GPU via `deploy.resources` alone | Confirm `runtime: nvidia` is in `docker-compose.yml`, then `docker compose down && docker compose up -d` |
+| `/sonar_3d15/raw` not publishing | multibeam2d requires GPU; same as camera rate issue | Same as above |
 | `Failed to load driver: nvidia-drm` in RViz log | Normal on some setups | Ignore — RViz still runs via OpenGL |
 | `package 'aqua_slam' not found` | Workspace not sourced | `source ~/ros2_ws/install/setup.bash` |
 | Stonefish window does not open | `DISPLAY` not set | Ensure `echo $DISPLAY` returns `:1` or similar on host before starting container |
