@@ -6,6 +6,7 @@ services:
 
     image: aqua/stonefish-sim:jazzy-dev
     container_name: aqua_slam_testbed
+    runtime: nvidia
 
     network_mode: host
     ipc: host
