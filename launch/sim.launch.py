@@ -54,8 +54,8 @@ def generate_launch_description():
         output='screen',
     )
 
-    # Adds acoustic noise to the raw multibeam2d cloud from Stonefish:
-    # dropout, angular jitter, Rayleigh intensity → /sonar_3d15/points (PointCloud2).
+    # Backprojects depthcamera image_depth → 3-D points and adds acoustic noise
+    # (dropout, angular jitter, Rayleigh intensity) → /sonar_3d15/points (PointCloud2).
     sonar_converter = ExecuteProcess(
         cmd=['python3', os.path.join(WS_ROOT, 'scripts', 'sim_sonar_3d15_converter.py')],
         output='screen',

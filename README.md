@@ -38,26 +38,24 @@ ros2 launch /ros2_ws/launch/sim.launch.py
 | DVL (raw) | dvl | `/girona500/dvl` | `stonefish_ros2/DVL` | 5 Hz |
 | DVL (SLAM) | — | `/bluerov2/dvl` | `nav_msgs/Odometry` | 5 Hz |
 | Pressure | pressure | `/girona500/pressure` | `sensor_msgs/FluidPressure` | 10 Hz |
-| Sonar 3D-15 (raw) | multibeam2d | `/girona500/sonar_3d15/raw` | `sensor_msgs/PointCloud2` | 5 Hz |
+| Sonar 3D-15 (raw) | depthcamera | `/girona500/sonar_3d15/raw/image_depth` | `sensor_msgs/Image` (32FC1) | 5 Hz |
 | Sonar 3D-15 (SLAM) | — | `/sonar_3d15/points` | `sensor_msgs/PointCloud2` | 5 Hz |
 
 `/bluerov2/dvl` and `/sonar_3d15/points` are published by converter nodes inside the testbed
 container (`sim_dvl_converter.py`, `sim_sonar_3d15_converter.py`).
 
-### Sonar 3D-15 coordinate frame
+### Sonar 3D-15 implementation note
 
-The `multibeam2d` sensor publishes in its own sensor frame (`frame_id: sonar_3d15`).
-Stonefish provides the TF chain `sonar_3d15 → Vehicle → world`.
+The sonar is currently approximated with a Stonefish `depthcamera` (90° H × 40° V, 256×94 px,
+0.2–15 m) rather than `multibeam2d`. The `depthcamera` outputs a 32FC1 z-depth image which
+`sim_sonar_3d15_converter.py` backprojects to a 3-D point cloud in the sensor RDF frame,
+applies the sensor→body FLU rotation, looks up the `aqua_slam → bluerov/base_link` TF, and
+publishes the result in the `aqua_slam` world frame.
 
-Sensor frame axes (after `rpy="1.5708 0.0 1.5708"` — same convention as stereo cameras):
+Acoustic effects added by the converter:
+- **Dropout** — range-dependent Rayleigh, P(survive) = exp(−0.02 r)
+- **Angular jitter** — Gaussian beam uncertainty: 0.425° H / 0.80° V (1-σ, proportional to range)
+- **Intensity** — Rayleigh speckle field, σ(r) = max(0.05, 0.8 − 0.04 r)
 
-```
-z  →  forward  (NED x, boresight)
-x  →  right    (NED y, horizontal sweep)
-y  →  down     (NED z, vertical extent)
-```
-
-The `/sonar_3d15/points` cloud adds an `intensity` field (Rayleigh acoustic speckle,
-range-attenuated) on top of the raw geometry.
 Simulated specs match the 3D-15 low-frequency datasheet:
-90° H × 40° V FOV, 256 × 67 beams, 0.2–15 m range.
+90° H × 40° V FOV, 0.2–15 m range, 5 Hz.
