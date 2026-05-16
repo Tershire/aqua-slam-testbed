@@ -96,11 +96,12 @@
 
     <base_link name="Vehicle" type="box" physics="submerged">
       <!-- Box: 1.1m(x/fwd) × 0.3m(y) × 0.3m(z), volume=0.099m³, displaced=101.5kg -->
+      <!-- mass=101.5 → neutral buoyancy (displaced mass = water density × volume = 1025×0.099) -->
       <dimensions xyz="1.1 0.3 0.3"/>
       <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
       <material name="Fiberglass"/>
       <look name="vehicle"/>
-      <mass value="101.0"/>
+      <mass value="101.5"/>
       <inertia xyz="0.55 5.5 5.5"/>
       <center_of_buoyancy xyz="0.0 0.0 -0.03"/>
       <added_mass xyz="5.0 30.0 30.0" rpy="0.0 0.0 0.0"/>
@@ -157,19 +158,18 @@
       <ros_publisher topic="/girona500/pressure"/>
     </sensor>
 
-    <!-- Water Linked SONAR 3D-15 (multibeam2d approximation).
+    <!-- Water Linked SONAR 3D-15 (depthcamera approximation).
          Low-frequency mode: 90°(±45°) H × 40°(±20°) V, 0.2–15 m, 5 Hz.
-         resolution_x=256 ≈ 90°/0.35° beam separation (H).
-         resolution_y=67  ≈ 40°/0.60° beam separation (V).
+         resolution 256×93: fx=fy=128, gives vfov≈40° with square pixels.
          Same rpy as stereo cameras: local Z forward, local -Y up.
          Acoustic noise (dropout + angular jitter + intensity) is added by
-         sim_sonar_3d15_converter.py; raw geometric cloud on /raw topic. -->
-    <sensor name="sonar_3d15" type="multibeam2d" rate="5.0">
+         sim_sonar_3d15_converter.py; converts image_depth → /sonar_3d15/points. -->
+    <sensor name="sonar_3d15" type="depthcamera" rate="5.0">
       <link name="Vehicle"/>
       <origin rpy="1.5708 0.0 1.5708" xyz="0.55 0.0 0.0"/>
-      <specs resolution_x="256" resolution_y="67"
-             horizontal_fov="90.0" vertical_fov="40.0"
-             range_min="0.2" range_max="15.0"/>
+      <specs resolution_x="256" resolution_y="93"
+             horizontal_fov="90.0"
+             depth_min="0.2" depth_max="15.0"/>
       <ros_publisher topic="/girona500/sonar_3d15/raw"/>
     </sensor>
 
